@@ -24,22 +24,22 @@ public class MantisesClass {
     private static final DcMotor.Direction direction_reverse = DcMotor.Direction.REVERSE;
     public MantisesClass(LinearOpMode opMode){
         op = opMode;
-        lineararm = opMode.hardwareMap.get(DcMotor.class, "linear");
+        lineararm = op.hardwareMap.get(DcMotor.class, "linear");
 
-        intakebox = opMode.hardwareMap.get(Servo.class, "intakebox");
+        intakebox = op.hardwareMap.get(Servo.class, "intakebox");
 
-        intake = opMode.hardwareMap.get(DcMotor.class, "intake");
+        intake = op.hardwareMap.get(DcMotor.class, "intake");
 
-        rotatearm = opMode.hardwareMap.get(Servo.class, "rarm");
+        rotatearm = op.hardwareMap.get(Servo.class, "rarm");
 
-        carousel_arm = opMode.hardwareMap.get(DcMotor.class, "carousel");
+        carousel_arm = op.hardwareMap.get(DcMotor.class, "carousel");
 
-        rotateintake = opMode.hardwareMap.get(DcMotor.class, "ri");
+        rotateintake = op.hardwareMap.get(DcMotor.class, "ri");
 
-        fl_wheel = opMode.hardwareMap.get(DcMotor.class, "fl");
-        fr_wheel = opMode.hardwareMap.get(DcMotor.class, "fr");
-        bl_wheel = opMode.hardwareMap.get(DcMotor.class, "bl");
-        br_wheel = opMode.hardwareMap.get(DcMotor.class, "br");
+        fl_wheel = op.hardwareMap.get(DcMotor.class, "fl");
+        fr_wheel = op.hardwareMap.get(DcMotor.class, "fr");
+        bl_wheel = op.hardwareMap.get(DcMotor.class, "bl");
+        br_wheel = op.hardwareMap.get(DcMotor.class, "br");
 
         intake.setDirection(direction_reverse);
         intake.setMode(encoder_false);
@@ -86,7 +86,7 @@ public class MantisesClass {
         rotateintake.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         rotateintake.setPower(0);
 
-        rotateintake.setTargetPosition((1440/4)/2);
+        rotateintake.setTargetPosition((384/4)/2);
         rotateintake.setPower(0.3);
         rotateintake.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         while(rotateintake.isBusy()){
@@ -94,25 +94,57 @@ public class MantisesClass {
         }
 
 
-        rotatearm.setPosition(0.55);
-        intakebox.setPosition(0.4);
-        op.sleep(2000);
+        rotatearm.setPosition(0.525);
+        intakebox.setPosition(0);
 
-        rotateintake.setTargetPosition(60);
+
+        rotateintake.setTargetPosition(0);
         rotateintake.setPower(0.1);
         rotateintake.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         while (rotateintake.isBusy()){
 
         }
         rotateintake.setPower(0);
+        //rotatearm.setPosition(0.5);
 
+    }
+    public void waitIfRIBusy(){
+        while (rotateintake.isBusy()){
+            op.telemetry.addData("Rotating", "Intake");
+            op.telemetry.update();
 
+        }
+    }
+    public void rotateIntakeUp(){
+        rotateintake.setTargetPosition((384/4)/2);
+        rotateintake.setPower(0.3);
+        rotateintake.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        waitIfRIBusy();
+    }
+    public void rotateIntakeDown(){
+        rotateintake.setTargetPosition(0);
+        rotateintake.setPower(0.1);
+        rotateintake.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        waitIfRIBusy();
+        rotateintake.setPower(0);
+    }
+    public void mechanum(){
+        double y = -op.gamepad1.left_stick_y; // Remember, this is reversed!
+        double x = op.gamepad1.left_stick_x * 1.1; // Counteract imperfect strafing
+        double rx = op.gamepad1.right_stick_x;
 
-//        rotateintake.setPower(-0.3);
-//        op.sleep(100);
-//        rotateintake.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-//        rotateintake.setPower(0);
+        // Denominator is the largest motor power (absolute value) or 1
+        // This ensures all the powers maintain the same ratio, but only when
+        // at least one is out of the range [-1, 1]
+        double denominator = Math.max(Math.abs(y) + Math.abs(x) + Math.abs(rx), 1);
+        double frontLeftPower = (y + x + rx) ;
+        double backLeftPower = (y - x + rx) ;
+        double frontRightPower = (y - x - rx) ;
+        double backRightPower = (y + x - rx);
 
-
+        fl_wheel.setPower(frontLeftPower);
+        bl_wheel.setPower(backLeftPower);
+        fr_wheel.setPower(frontRightPower);
+        br_wheel.setPower(backRightPower);
     }
 }
