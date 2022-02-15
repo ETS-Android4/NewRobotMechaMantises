@@ -155,6 +155,7 @@ public class AutonomousBlue extends LinearOpMode {
         mantis.carousel_arm.setPower(0);
         mantis.move(26, 3, 0.8, 2);
         mantis.move(3, 1, 1, 2);
+        mantis.turn(41, 1);
 
 
 
